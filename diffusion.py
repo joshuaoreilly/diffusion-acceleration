@@ -23,7 +23,11 @@ def save_results(c, implementation):
           raise ValueError(f'Implementation {implementation} does\'t exist')
 
 
-def diffuse_numpy(c : List[List[float]], c_tmp : List[List[float]], T : float, dt : float, aux : float):
+def diffuse_numpy(c : List[List[float]],
+                  c_tmp : List[List[float]],
+                  T : float,
+                  dt : float,
+                  aux : float):
      c = np.array(c)
      c_tmp = np.array(c_tmp)
      num_steps = int(T / dt) + 1
@@ -31,19 +35,29 @@ def diffuse_numpy(c : List[List[float]], c_tmp : List[List[float]], T : float, d
      for _ in range(num_steps):
           for i in range(1, len(c) - 1):
                for j in range(1, len(c[0]) - 1):
-                    c_tmp[i][j] = c[i][j] + aux * (c[i - 1][j] + c[i + 1][j] + c[i][j - 1] + c[i][j + 1] - 4 * c[i][j])
+                    c_tmp[i][j] = (c[i][j] + aux *
+                                   (c[i - 1][j] + c[i + 1][j] +
+                                    c[i][j - 1] + c[i][j + 1] -
+                                    4 * c[i][j]))
           c, c_tmp = c_tmp, c # like a C++ swap() :D
      time_stop = perf_counter_ns()
      return c, time_stop - time_start
 
 
-def diffuse_naive(c : List[List[float]], c_tmp : List[List[float]], T : float, dt : float, aux : float):
+def diffuse_naive(c : List[List[float]],
+                  c_tmp : List[List[float]],
+                  T : float,
+                  dt : float,
+                  aux : float):
      num_steps = int(T / dt) + 1
      time_start = perf_counter_ns()
      for _ in range(num_steps):
           for i in range(1, len(c) - 1):
                for j in range(1, len(c[0]) - 1):
-                    c_tmp[i][j] = c[i][j] + aux * (c[i - 1][j] + c[i + 1][j] + c[i][j - 1] + c[i][j + 1] - 4 * c[i][j])
+                    c_tmp[i][j] = (c[i][j] + aux *
+                                   (c[i - 1][j] + c[i + 1][j] +
+                                    c[i][j - 1] + c[i][j + 1] -
+                                    4 * c[i][j]))
           c, c_tmp = c_tmp, c # like a C++ swap() :D
      time_stop = perf_counter_ns()
      return c, time_stop - time_start
@@ -56,7 +70,8 @@ def initialize_concentration(L : float, N : float, h : float):
      # Initialize non-boundary cells
      for i in range(N):
           for j in range(N):
-               if abs(i * h - 0.5 * L) < bound and abs(j * h - 0.5 * L) < bound:
+               if (abs(i * h - 0.5 * L) < bound and
+                   abs(j * h - 0.5 * L) < bound):
                     c[i+1][j+1] = 1.0
                else:
                     c[i+1][j+1] = 0.0
