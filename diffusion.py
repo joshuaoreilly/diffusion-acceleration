@@ -66,21 +66,13 @@ def diffuse_naive(c : List[List[float]],
 def initialize_concentration(L : float, N : float, h : float):
      bound = 0.125 * L
      # +2 to add a border of boundary cells (boundary condition)
-     c = [[None] * (N+2) for _ in range(N+2)]
+     c = [[0.0] * (N+2) for _ in range(N+2)]
      # Initialize non-boundary cells
      for i in range(N):
           for j in range(N):
                if (abs(i * h - 0.5 * L) < bound and
                    abs(j * h - 0.5 * L) < bound):
                     c[i+1][j+1] = 1.0
-               else:
-                    c[i+1][j+1] = 0.0
-     # initialize boundary cells
-     for i in range(N+2):
-          c[0][i] = 0.0
-          c[N+1][i] = 0.0
-          c[i][0] = 0.0
-          c[i][N+1] = 0.0
      c_tmp = [row[:] for row in c]
      return c, c_tmp
 
