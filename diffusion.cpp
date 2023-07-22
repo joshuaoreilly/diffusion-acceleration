@@ -29,16 +29,16 @@ void save_results(const std::vector<double> &c,
 }
 
 
-void diffuse_naive(std::vector<double> &c,
-                    std::vector<double> &c_tmp,
-                    const double T,
-                    const double dt,
-                    const double aux) {
+std::chrono::nanoseconds diffuse_naive(std::vector<double> &c,
+                            std::vector<double> &c_tmp,
+                            const double T,
+                            const double dt,
+                            const double aux) {
     const size_t num_steps = (T / dt) + 1;
     const size_t length = sqrt(c.size());
     // M = N + 2, the length with padding
     const int M = (int) length;
-    auto time_start = std::chrono::steady_clock::now();
+    auto time_start = std::chrono::high_resolution_clock::now();
     for (size_t step = 0; step < num_steps; ++step) {
         for (size_t i = 1; i < length - 1; ++i) {
             for (size_t j = 1; j < length - 1; ++j) {
@@ -50,7 +50,9 @@ void diffuse_naive(std::vector<double> &c,
         }
         std::swap(c, c_tmp);
     }
-    auto time_stop = std::chrono::steady_clock::now();
+    auto time_stop = std::chrono::high_resolution_clock::now();
+    auto time_elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(time_stop - time_start);
+    return time_elapsed;
 }
 
 
@@ -90,9 +92,11 @@ int main(int argc, char *argv[]) {
     std::vector<double> c((N+2) * (N+2), 0.0);
     std::vector<double> c_tmp((N+2) * (N+2), 0.0);
     initialize_concentration(c, L, N, h);
+    std::chrono::nanoseconds time_elapsed;
     if (implementation.compare("naive") == 0) {
-        diffuse_naive(c, c_tmp, T, dt, aux);
+        time_elapsed = diffuse_naive(c, c_tmp, T, dt, aux);
     }
+    printf("Elapsed time: %luns\n", time_elapsed.count());
     if (output == 1) {
         save_results(c, implementation);
     }
