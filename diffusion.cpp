@@ -7,18 +7,22 @@
 /*
 * TODO:
 *   - Find out why std::abs() works but abs() doesn't in initialization
+*
+* Compile with:
+* g++ -O3 -Wall -Wextra -pedantic -Wall -Wconversion -Wextra -pedantic -std=c++14 -o diffusion diffusion.cpp
 */
 
 
 void save_results(const std::vector<double> &c,
                     const std::string &implementation) {
     std::string filename = "cpp_" + implementation + ".txt";
-    size_t length = sqrt(c.size());
+    // M = N + 2, the length with padding
+    size_t M = (size_t) sqrt(c.size());
     std::ofstream ofs(filename, std::ofstream::out);
-    for (size_t i = 0; i < length; ++i) {
-        for (size_t j = 0; j < length; ++j) {
-            ofs << c[i * length + j];
-            if (j == length - 1) {
+    for (size_t i = 0; i < M; ++i) {
+        for (size_t j = 0; j < M; ++j) {
+            ofs << c[i * M + j];
+            if (j == M - 1) {
                 ofs << "\n";
             } else {
                 ofs << ",";
@@ -29,19 +33,52 @@ void save_results(const std::vector<double> &c,
 }
 
 
+__inline__ void step_const_c(const std::vector<double> &__restrict c,
+                    std::vector<double> &c_tmp,
+                    const size_t &M,
+                    const double &aux) {
+    for (size_t i = 1; i < M - 1; ++i) {
+        for (size_t j = 1; j < M - 1; ++j) {
+            c_tmp[i * M + j] = c[i * M + j] + aux * (
+                c[i * M + (j + 1)] + c[i * M + (j - 1)] +
+                c[(i + 1) * M + j] + c[(i - 1) * M + j] -
+                4 * c[i * M + j]);
+        }
+    }
+}
+
+
+std::chrono::nanoseconds diffuse_const_c(std::vector<double> &c,
+                            std::vector<double> &c_tmp,
+                            const double T,
+                            const double dt,
+                            const double aux) {
+    const size_t num_steps = (size_t) ((T / dt) + 1);
+    // M = N + 2, the length with padding
+    const size_t M = (size_t) sqrt(c.size());
+    auto time_start = std::chrono::high_resolution_clock::now();
+    for (size_t step = 0; step < num_steps; ++step) {
+        step_const_c(c, c_tmp, M, aux);
+        std::swap(c, c_tmp);
+    }
+    auto time_stop = std::chrono::high_resolution_clock::now();
+    auto time_elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(time_stop - time_start);
+    return time_elapsed;
+}
+
+
 std::chrono::nanoseconds diffuse_naive(std::vector<double> &c,
                             std::vector<double> &c_tmp,
                             const double T,
                             const double dt,
                             const double aux) {
-    const size_t num_steps = (T / dt) + 1;
-    const size_t length = sqrt(c.size());
+    const size_t num_steps = (size_t) ((T / dt) + 1);
     // M = N + 2, the length with padding
-    const int M = (int) length;
-    auto time_start = std::chrono::high_resolution_clock::now();
+    const size_t M = (size_t) sqrt(c.size());
+    auto time_start = std::chrono::steady_clock::now();
     for (size_t step = 0; step < num_steps; ++step) {
-        for (size_t i = 1; i < length - 1; ++i) {
-            for (size_t j = 1; j < length - 1; ++j) {
+        for (size_t i = 1; i < M - 1; ++i) {
+            for (size_t j = 1; j < M - 1; ++j) {
                 c_tmp[i * M + j] = c[i * M + j] + aux * (
                     c[i * M + (j + 1)] + c[i * M + (j - 1)] +
                     c[(i + 1) * M + j] + c[(i - 1) * M + j] -
@@ -50,7 +87,7 @@ std::chrono::nanoseconds diffuse_naive(std::vector<double> &c,
         }
         std::swap(c, c_tmp);
     }
-    auto time_stop = std::chrono::high_resolution_clock::now();
+    auto time_stop = std::chrono::steady_clock::now();
     auto time_elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(time_stop - time_start);
     return time_elapsed;
 }
@@ -77,7 +114,7 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Usage: %s D L N T out implementation\n", argv[0]);
         return 1;
     }
-    
+
     const double D = std::stod(argv[1]);        // diffusion constant
     const double L = std::stod(argv[2]);        // domain size
     const size_t N = std::stoul(argv[3]);       // number of grid points along each dim
@@ -95,6 +132,8 @@ int main(int argc, char *argv[]) {
     std::chrono::nanoseconds time_elapsed;
     if (implementation.compare("naive") == 0) {
         time_elapsed = diffuse_naive(c, c_tmp, T, dt, aux);
+    } else if (implementation.compare("const") == 0) {
+        time_elapsed = diffuse_const_c(c, c_tmp, T, dt, aux);
     }
     printf("Elapsed time: %luns\n", time_elapsed.count());
     if (output == 1) {
