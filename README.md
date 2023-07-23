@@ -71,6 +71,16 @@ Runtime (both): 54355785ns = 0.0543s
 
 A little slower than the `-O3` version, showing just how much smarter the optimizer is than I am (also, `__restrict` apparently [doesn't affect](https://stackoverflow.com/questions/76747148/why-does-moving-for-loops-to-their-own-function-slow-down-the-program?noredirect=1#comment135304575_76747148) `std::vector` anyways); it probably already inlined the function, noticed `c` isn't edited in the inner for loops and did the equivalent of `const`, and a thousand other optimizations I never considered or know about.
 
+### OpenMP
+
+[OpenMP](https://en.wikipedia.org/wiki/OpenMP) is an API that allows for incredibly simple multithreading; instead of having to spawn threads, divide the workload manually based on the thread-id, then joint them at the end, we can `#include <omp.h>`, add a single `#pragma parallel for collapse(2)` statement which'll automatically spawn threads, distribute the work over the nested loops, then join them at the end for us, and finally at the compilation flag `fopenmp`, and we're off the the races, which so far, it's winning.
+
+Runtime (`export OMP_NUM_THREADS=16`): 21742075ns = 0.021s
+
+Over twice as fast as our reference implementation; not the 16x speedup we might naively hope for, but still useful.
+
+TODO: add explanation of why non-linear scaling.
+
 ## Requirements
 
 - `g++`

@@ -1,7 +1,9 @@
+#include <iostream>
 #include <chrono>
 #include <cmath>
 #include <fstream>
 #include <vector>
+#include <omp.h>
 
 
 /*
@@ -9,7 +11,7 @@
 *   - Find out why std::abs() works but abs() doesn't in initialization
 *
 * Compile with:
-* g++ -O3 -Wall -Wextra -pedantic -Wall -Wconversion -Wextra -pedantic -std=c++14 -o diffusion diffusion.cpp
+* g++ -O3 -Wall -Wextra -pedantic -Wall -Wconversion -Wextra -pedantic -std=c++14 -fopenmp -o diffusion diffusion.cpp
 */
 
 
@@ -30,6 +32,33 @@ void save_results(const std::vector<double> &c,
         }
     }
     ofs.close();
+}
+
+
+std::chrono::nanoseconds diffuse_openmp(std::vector<double> &c,
+                            std::vector<double> &c_tmp,
+                            const double T,
+                            const double dt,
+                            const double aux) {
+    const size_t num_steps = (size_t) ((T / dt) + 1);
+    // M = N + 2, the length with padding
+    const size_t M = (size_t) sqrt(c.size());
+    auto time_start = std::chrono::steady_clock::now();
+    for (size_t step = 0; step < num_steps; ++step) {
+#pragma omp parallel for collapse(2)
+        for (size_t i = 1; i < M - 1; ++i) {
+            for (size_t j = 1; j < M - 1; ++j) {
+                c_tmp[i * M + j] = c[i * M + j] + aux * (
+                    c[i * M + (j + 1)] + c[i * M + (j - 1)] +
+                    c[(i + 1) * M + j] + c[(i - 1) * M + j] -
+                    4 * c[i * M + j]);
+            }
+        }
+        std::swap(c, c_tmp);
+    }
+    auto time_stop = std::chrono::steady_clock::now();
+    auto time_elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(time_stop - time_start);
+    return time_elapsed;
 }
 
 
@@ -134,6 +163,11 @@ int main(int argc, char *argv[]) {
         time_elapsed = diffuse_naive(c, c_tmp, T, dt, aux);
     } else if (implementation.compare("const") == 0) {
         time_elapsed = diffuse_const_c(c, c_tmp, T, dt, aux);
+    } else if (implementation.compare("openmp") == 0) {
+        time_elapsed = diffuse_openmp(c, c_tmp, T, dt, aux);
+    } else {
+        std::cout << "Implementation " << implementation << " not found\n";
+        exit(1);
     }
     printf("Elapsed time: %luns\n", time_elapsed.count());
     if (output == 1) {
