@@ -6,6 +6,9 @@ import matplotlib.pyplot as plt
 
 """
 Compares output of two diffusion simulations
+
+TODO:
+- Ensure all values in both are in [0, 1]
 """
 
 
