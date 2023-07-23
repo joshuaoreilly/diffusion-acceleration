@@ -4,6 +4,7 @@
 #include <fstream>
 #include <vector>
 #include <omp.h>
+#include "diffusioncuda.h"
 
 
 /*
@@ -165,7 +166,9 @@ int main(int argc, char *argv[]) {
         time_elapsed = diffuse_const_c(c, c_tmp, T, dt, aux);
     } else if (implementation.compare("openmp") == 0) {
         time_elapsed = diffuse_openmp(c, c_tmp, T, dt, aux);
-    } else {
+    } else if (implementation.compare("cuda") == 0) {
+        diffuse_cuda(&c[0], &c_tmp[0], T, dt, aux);
+    }  else {
         std::cout << "Implementation " << implementation << " not found\n";
         exit(1);
     }
