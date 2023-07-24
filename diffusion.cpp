@@ -36,6 +36,28 @@ void save_results(const std::vector<double> &c,
 }
 
 
+void vector_to_arr(std::vector<double> &c,
+                    double *arr,
+                    const size_t M) {
+    for (size_t i = 0; i < M; ++i) {
+        for (size_t j = 0; j < M; ++j) {
+            arr[i * M + j] = c[i * M + j];
+        }
+    }
+}
+
+
+void arr_to_vector(std::vector<double> &c,
+                    double *arr,
+                    const size_t M) {
+    for (size_t i = 0; i < M; ++i) {
+        for (size_t j = 0; j < M; ++j) {
+            c[i * M + j] = arr[i * M + j];
+        }
+    }
+}
+
+
 std::chrono::nanoseconds diffuse_openmp(std::vector<double> &c,
                             std::vector<double> &c_tmp,
                             const double T,
@@ -167,7 +189,10 @@ int main(int argc, char *argv[]) {
     } else if (implementation.compare("openmp") == 0) {
         time_elapsed = diffuse_openmp(c, c_tmp, T, dt, aux);
     } else if (implementation.compare("cuda") == 0) {
-        diffuse_cuda(&c[0], &c_tmp[0], T, dt, aux);
+        double *arr = (double *) malloc((N + 2) * (N + 2) * sizeof(double));
+        vector_to_arr(c, arr, N + 2);
+        time_elapsed = diffuse_cuda(arr, T, dt, aux, N + 2);
+        arr_to_vector(c, arr, N + 2);
     }  else {
         std::cout << "Implementation " << implementation << " not found\n";
         exit(1);

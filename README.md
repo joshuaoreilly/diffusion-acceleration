@@ -89,6 +89,12 @@ TODO: add explanation of why non-linear scaling.
 - cuda/nccc (get an actual requirement and put it here)
 - openmp? (get an actual requirement and put it here)
 
+## Lessons Learned
+
+- CUDA will throw `CUDA Runtime Error: an illegal memory access was encountered` if a reference is passed to a kernel
+- Declaring arguments as `const` in a kernel is unecessary, as [all values](https://stackoverflow.com/questions/65015858/cuda-kernel-do-i-need-to-put-const-in-all-pass-by-value-parameters) are [passed as const](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#function-parameters)
+- It's probably better to work directly with C-style arrays than vectors, since CUDA doesn't support them, and we need to do some annoying conversions to get it onto the GPU
+
 ## To Do
 
 - Find ways to speed up python code
