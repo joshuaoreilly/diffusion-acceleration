@@ -81,6 +81,21 @@ Over twice as fast as our reference implementation; not the 16x speedup we might
 
 TODO: add explanation of why non-linear scaling.
 
+### CUDA
+
+First, a naive kernel that (TODO: add explanation).
+
+```
+int threadsPerBlock = 32;
+int numberOfBlocks = multiProcessorCount;
+```
+
+Runtime: 204554396ns = 0.204s
+
+Slower than naive, single-threaded C++ approach; our kernel must not be optimized for running on GPU.
+
+TODO: look into [NVIDIA blog on topic](https://developer.nvidia.com/blog/finite-difference-methods-cuda-cc-part-1/).
+
 ## Requirements
 
 - `g++`
@@ -98,3 +113,4 @@ TODO: add explanation of why non-linear scaling.
 ## To Do
 
 - Find ways to speed up python code
+- Speed up CUDA kernel
