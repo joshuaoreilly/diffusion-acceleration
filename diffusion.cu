@@ -22,15 +22,15 @@ void swap(double* &a, double* &b){
 
 __global__
 void step_kernel(double *c, double *c_tmp, const double aux, const size_t M) {
-    int index = threadIdx.x + blockIdx.x * blockDim.x;
+    int index = threadIdx.x + blockIdx.x * blockDim.x + M + 1;
     int stride = blockDim.x * gridDim.x;
 
-    for (size_t i = index+1; i < M - 1; i+= stride) {
-        for (size_t j = 1; j < M - 1; ++j) {
-            c_tmp[i * M + j] = c[i * M + j] + aux * (
-                c[i * M + (j + 1)] + c[i * M + (j - 1)] +
-                c[(i + 1) * M + j] + c[(i - 1) * M + j] -
-                4 * c[i * M + j]);
+    for (size_t i = index; i < (M * M) - M; i += stride) {
+        if (i % M != 0 && i % M != M - 1) {
+            c_tmp[i] = c[i] + aux * (
+                    c[i + 1] + c[i - 1] +
+                    c[i + M] + c[i - M] -
+                    4 * c[i]);
         }
     }
 }
@@ -60,7 +60,7 @@ std::chrono::nanoseconds diffuse(double *c_h,
     cudaMemcpy(c_tmp, c_h, bytes, cudaMemcpyHostToDevice);
 
     int threadsPerBlock = 32;
-    int numberOfBlocks = multiProcessorCount;
+    int numberOfBlocks = 32 * multiProcessorCount;
 
     const size_t num_steps = (size_t) ((T / dt) + 1);
     auto time_start = std::chrono::steady_clock::now();
