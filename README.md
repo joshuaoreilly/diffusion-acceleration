@@ -81,20 +81,18 @@ Over twice as fast as our reference implementation; not the 16x speedup we might
 
 TODO: add explanation of why non-linear scaling.
 
-### CUDA
+### CUDA Naive
 
-First, a naive kernel that (TODO: add explanation).
+First, a naive kernel that (TODO: add explanation, image from [here](https://stackoverflow.com/questions/32226993/understanding-streaming-multiprocessors-sm-and-streaming-processors-sp)).
 
 ```
 int threadsPerBlock = 32;
-int numberOfBlocks = multiProcessorCount;
+int numberOfBlocks = 32 * multiProcessorCount;
 ```
 
-Runtime: 204554396ns = 0.204s
+Runtime: 23572605ns = 0.023s
 
-Slower than naive, single-threaded C++ approach; our kernel must not be optimized for running on GPU.
-
-TODO: look into [NVIDIA blog on topic](https://developer.nvidia.com/blog/finite-difference-methods-cuda-cc-part-1/).
+Incrementally slower than our parallelized C++ version for a array width of 200, but once the array gets larger, the performance gap widens; with $N = 1500$, C++ naive took 223 seconds, C++ OpenMP took 131 seconds, and CUDA took 21 seconds.
 
 ## Requirements
 
@@ -112,5 +110,16 @@ TODO: look into [NVIDIA blog on topic](https://developer.nvidia.com/blog/finite-
 
 ## To Do
 
-- Find ways to speed up python code
-- Speed up CUDA kernel
+- cuda version without modulo and with array swap kernel
+- omp simd to vectorize C++ implementation
+- manually vectorize C++ implementation (but don't multithread)
+- Manually thread and vectorize C++ implementation
+- Look into pinning threads on certain CPUs?
+- Cuda version above
+- Only launch as many blocks as is necessary to fill all SM (https://stackoverflow.com/questions/21332040/simple-cuda-kernel-optimization); I think you're already doing that above, since numberOfBlocks = 32 * multiprocessorCount with threadPerBlock results in 1024 threads per 
+- single cuda wrapper function that accepts the implementation (get merge diffuse and diffuse_wrapper), clean up code
+- Cuda version without striding (each block operates only in a contiguous block of memory -> can allocate shared memory explicitely
+- Parallelize Python code
+- Add memcpy from host to device to time, explain why it's also probably not as relevant in this case, since we could have performed the allocation of c on the GPU direclty if I wasn't running everything/allocating from my C++ file
+- Run as float instead of double maybe add the image from here? It's techincally for a different GPU, but illustrates quite well the availability of registers for different floating point number sizes (https://developer.nvidia.com/blog/nvidia-ampere-architecture-in-depth/)
+- Write bash script to automatically run all versions with different array sizes, plot results
