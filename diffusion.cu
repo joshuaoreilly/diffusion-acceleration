@@ -36,12 +36,11 @@ void step_kernel(double *c, double *c_tmp, const double aux, const size_t M) {
 }
 
 
-std::chrono::nanoseconds diffuse(double *c_h,
+std::chrono::nanoseconds diffuse_cuda(double *c_h,
                                     const double T,
                                     const double dt,
                                     const double aux,
                                     const size_t M) {
-
     int deviceId;
     cudaDeviceProp props;
     cudaGetDevice(&deviceId);
@@ -86,13 +85,4 @@ std::chrono::nanoseconds diffuse(double *c_h,
     cudaFree(c);
     cudaFree(c_tmp);
     return time_elapsed;
-}
-
-
-std::chrono::nanoseconds diffuse_cuda(double *c_h,
-                    const double T,
-                    const double dt,
-                    const double aux,
-                    const size_t M) {
-    return diffuse(c_h, T, dt, aux, M);
 }
