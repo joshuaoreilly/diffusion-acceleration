@@ -1,4 +1,6 @@
 *.txt
-.vscode
+*.sqlite
+*.nsys-rep
 *.o
+.vscode
 diffusion
