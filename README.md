@@ -110,6 +110,8 @@ Incrementally slower than our parallelized C++ version for a array width of 200,
 
 ## To Do
 
+- Clean up formatting of graphs
+- Plot IO time vs compute time for CUDA
 - Compare different choices of thread counts with OpenMP
 - Compare different choices of thread and block count with CUDA
 - CUDA version with dynamic shared memory -> 'stride' within a contiguous chunk of the array, separate x and y derivatives
