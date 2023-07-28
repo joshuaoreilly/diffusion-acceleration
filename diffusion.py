@@ -58,7 +58,6 @@ def diffuse_torch(c : List[List[float]],
           c, c_tmp = c_tmp, c
      time_stop = perf_counter_ns()
      c_reshaped = torch.reshape(c, (width, width)).cpu().numpy()
-     print(c_reshaped.shape)
      return  c_reshaped, time_stop - time_start
 
 
