@@ -34,3 +34,6 @@ if __name__ == '__main__':
         deltas = np.multiply(np.logical_not(np.isclose(a, b)), np.abs(a - b))
         i, j = np.unravel_index(deltas.argmax(), deltas.shape)
         print(f'Unacceptable margin, worst instance is where a is {a[i,j]}, b is {b[i,j]}, delta is {deltas[i,j]}')
+        plt.imshow(deltas, vmin=0, vmax=deltas[i,j], interpolation='none')
+        plt.colorbar()
+        plt.show()
