@@ -56,8 +56,11 @@ std::chrono::nanoseconds diffuse(double *c_h,
     checkCuda(cudaMalloc(&c, bytes));
     checkCuda(cudaMalloc(&c_tmp, bytes));
 
+    auto time_cpy_htod_start = std::chrono::steady_clock::now();
     cudaMemcpy(c, c_h, bytes, cudaMemcpyHostToDevice);
     cudaMemcpy(c_tmp, c_h, bytes, cudaMemcpyHostToDevice);
+    auto time_cpy_htod_stop = std::chrono::steady_clock::now();
+    auto time_cpy_htod_elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(time_cpy_htod_stop - time_cpy_htod_start);
 
     int threadsPerBlock = 32;
     int numberOfBlocks = 32 * multiProcessorCount;
@@ -73,7 +76,12 @@ std::chrono::nanoseconds diffuse(double *c_h,
     auto time_stop = std::chrono::steady_clock::now();
     auto time_elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(time_stop - time_start);
 
+    auto time_cpy_dtoh_start = std::chrono::steady_clock::now();
     cudaMemcpy(c_h, c, bytes, cudaMemcpyDeviceToHost);
+    auto time_cpy_dtoh_stop = std::chrono::steady_clock::now();
+    auto time_cpy_dtoh_elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(time_cpy_dtoh_stop - time_cpy_dtoh_start);
+
+    printf("IO time: %ldns\n", time_cpy_htod_elapsed.count() + time_cpy_dtoh_elapsed.count());
 
     cudaFree(c);
     cudaFree(c_tmp);
