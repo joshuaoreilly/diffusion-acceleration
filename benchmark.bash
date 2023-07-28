@@ -1,7 +1,17 @@
 file="results.txt"
 echo "Implementation, N (M = N + 2), Time (ns), IO Time (ns) if applicable" > $file
 
-for implementation in naive numpy scipy cupy torch; do
+# Too slow to bother doing them all
+for implementation in naive numpy scipy; do
+	for N in 16 32 64 128 256; do
+		output=$(python diffusion.py -D 0.1 -L 2.0 -N $N -T 0.5 --output --implementation $implementation)
+		time=$(echo "$output" | grep -oE '[0-9]+')
+		echo "python_$implementation, $N, $time" >> $file
+		echo "python_$implementation, $N, $time ns"
+	done
+done
+
+for implementation in cupy torch; do
 	for N in 16 32 64 128 256 512 1024; do #, 64, 128, 256, 512
 		output=$(python diffusion.py -D 0.1 -L 2.0 -N $N -T 0.5 --output --implementation $implementation)
 		time=$(echo "$output" | grep -oE '[0-9]+')
