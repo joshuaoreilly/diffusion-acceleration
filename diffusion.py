@@ -3,6 +3,10 @@ from pathlib import Path
 from typing import List
 from time import perf_counter_ns
 import numpy as np
+import scipy as sp
+import cupyx.scipy.signal as sgx
+import cupy as cp
+import torch
 
 
 """
@@ -16,10 +20,92 @@ def save_results(c, implementation):
           with open(Path('python_' + implementation + '.txt'), 'w') as file:
                for row in c:
                     file.writelines(','.join([str(i) for i in row]) + '\n')
-     elif implementation == 'numpy':
+     elif implementation in {'numpy', 'scipy', 'cupy', 'torch'}:
           np.savetxt('python_' + implementation + '.txt', c, fmt='%f', delimiter=',')
      else:
           raise ValueError(f'Implementation {implementation} does\'t exist')
+
+
+def diffuse_torch(c : List[List[float]],
+                 c_tmp : List[List[float]],
+                 T : float,
+                 dt : float,
+                 aux : float):
+     width = len(c)
+     gpu = torch.device('cuda')
+     c = torch.tensor(c, dtype=torch.float64, device=gpu)
+     c = torch.unsqueeze(torch.unsqueeze(c, 0), 0)
+     c_tmp = torch.tensor(c_tmp, dtype=torch.float64, device=gpu)
+     c_tmp = torch.unsqueeze(torch.unsqueeze(c_tmp, 0), 0)
+     kernel = aux * torch.tensor([[0, 1, 0],
+                                  [1, -4, 1],
+                                  [0, 1, 0]],
+                                  dtype=torch.float64,
+                                  device=gpu)
+     kernel = torch.unsqueeze(torch.unsqueeze(kernel, 0), 0)
+     assert c.is_cuda
+     assert c_tmp.is_cuda
+     assert kernel.is_cuda
+     num_steps = int(T / dt) + 1
+     time_start = perf_counter_ns()
+     for _ in range(num_steps):
+          c_tmp = c + torch.nn.functional.pad(
+               torch.nn.functional.conv2d(c, kernel, padding='valid'),
+               (1,1,1,1),
+               'constant',
+               0
+          )
+          c, c_tmp = c_tmp, c
+     time_stop = perf_counter_ns()
+     c_reshaped = torch.reshape(c, (width, width)).cpu().numpy()
+     print(c_reshaped.shape)
+     return  c_reshaped, time_stop - time_start
+
+
+def diffuse_cupy(c : List[List[float]],
+                 c_tmp : List[List[float]],
+                 T : float,
+                 dt : float,
+                 aux : float):
+     c = cp.array(c)
+     c_tmp = cp.array(c_tmp)
+     kernel = aux * cp.array([[0, 1, 0],
+                              [1, -4, 1],
+                              [0, 1, 0]])
+     num_steps = int(T / dt) + 1
+     time_start = perf_counter_ns()
+     for _ in range(num_steps):
+          c_tmp = c + cp.pad(
+               sgx.convolve2d(c, kernel, mode='valid'),
+                    1,
+                    'constant'
+               )
+          c, c_tmp = c_tmp, c
+     time_stop = perf_counter_ns()
+     return c, time_stop - time_start
+
+
+def diffuse_scipy(c : List[List[float]],
+                  c_tmp : List[List[float]],
+                  T : float,
+                  dt : float,
+                  aux : float):
+     c = np.array(c)
+     c_tmp = np.array(c_tmp)
+     kernel = aux * np.array([[0, 1, 0],
+                              [1, -4, 1],
+                              [0, 1, 0]])
+     num_steps = int(T / dt) + 1
+     time_start = perf_counter_ns()
+     for _ in range(num_steps):
+          c_tmp = c + np.pad(
+               sp.signal.convolve2d(c, kernel, mode='valid'),
+                    1,
+                    'constant'
+               )
+          c, c_tmp = c_tmp, c
+     time_stop = perf_counter_ns()
+     return c, time_stop - time_start
 
 
 def diffuse_numpy(c : List[List[float]],
@@ -38,7 +124,7 @@ def diffuse_numpy(c : List[List[float]],
                                    (c[i - 1][j] + c[i + 1][j] +
                                     c[i][j - 1] + c[i][j + 1] -
                                     4 * c[i][j]))
-          c, c_tmp = c_tmp, c # like a C++ swap() :D
+          c, c_tmp = c_tmp, c
      time_stop = perf_counter_ns()
      return c, time_stop - time_start
 
@@ -57,7 +143,7 @@ def diffuse_naive(c : List[List[float]],
                                    (c[i - 1][j] + c[i + 1][j] +
                                     c[i][j - 1] + c[i][j + 1] -
                                     4 * c[i][j]))
-          c, c_tmp = c_tmp, c # like a C++ swap() :D
+          c, c_tmp = c_tmp, c
      time_stop = perf_counter_ns()
      return c, time_stop - time_start
 
@@ -110,6 +196,12 @@ if __name__ == '__main__':
           c, time_ns = diffuse_naive(c, c_tmp, T, dt, aux)
      elif implementation == 'numpy':
           c, time_ns = diffuse_numpy(c, c_tmp, T, dt, aux)
+     elif implementation == 'scipy':
+          c, time_ns = diffuse_scipy(c, c_tmp, T, dt, aux)
+     elif implementation == 'cupy':
+          c, time_ns = diffuse_cupy(c, c_tmp, T, dt, aux)
+     elif implementation == 'torch':
+          c, time_ns = diffuse_torch(c, c_tmp, T, dt, aux)
      else:
           raise ValueError(f'Implementation {implementation} does\'t exist')
      if output:
