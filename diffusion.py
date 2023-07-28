@@ -116,6 +116,3 @@ if __name__ == '__main__':
      if output:
           save_results(c, implementation)
      print(f'Elapsed time: {time_ns}ns')
-     plt.imshow(np.array(c, dtype=float), vmin=0, vmax=1, interpolation='none')
-     plt.colorbar()
-     plt.show()
