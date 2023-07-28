@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import List
 from time import perf_counter_ns
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 """
