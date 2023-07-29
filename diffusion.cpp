@@ -17,8 +17,11 @@
 
 
 void save_results(const std::vector<double> &c,
-                    const std::string &implementation) {
-    std::string filename = "cpp_" + implementation + ".txt";
+                    const std::string &implementation,
+                    std::string filename) {
+    if (filename.empty()) {
+        std::string filename = "cpp_" + implementation + ".txt";
+    }
     // M = N + 2, the length with padding
     size_t M = (size_t) sqrt(c.size());
     std::ofstream ofs(filename, std::ofstream::out);
@@ -53,6 +56,32 @@ void arr_to_vector(std::vector<double> &c,
     for (size_t i = 0; i < M; ++i) {
         for (size_t j = 0; j < M; ++j) {
             c[i * M + j] = arr[i * M + j];
+        }
+    }
+}
+
+
+void diffuse_animate(std::vector<double> &c,
+                            std::vector<double> &c_tmp,
+                            const double aux,
+                            const size_t num_steps) {
+    // M = N + 2, the length with padding
+    const size_t num_frames = 100;
+    const size_t interval = num_steps / num_frames;
+    const size_t M = (size_t) sqrt(c.size());
+    for (size_t step = 0; step < num_steps; ++step) {
+#pragma omp parallel for collapse(2)
+        for (size_t i = 1; i < M - 1; ++i) {
+            for (size_t j = 1; j < M - 1; ++j) {
+                c_tmp[i * M + j] = c[i * M + j] + aux * (
+                    c[i * M + (j + 1)] + c[i * M + (j - 1)] +
+                    c[(i + 1) * M + j] + c[(i - 1) * M + j] -
+                    4 * c[i * M + j]);
+            }
+        }
+        std::swap(c, c_tmp);
+        if (step % interval == 0) {
+            save_results(c, "animation", "animation/" + std::to_string(step) + ".txt");
         }
     }
 }
@@ -183,7 +212,10 @@ int main(int argc, char *argv[]) {
         time_elapsed = diffuse_const_c(c, c_tmp, aux, num_steps);
     } else if (implementation.compare("openmp") == 0) {
         time_elapsed = diffuse_openmp(c, c_tmp, aux, num_steps);
-    } else if (implementation.compare("cuda") == 0) {
+    } else if (implementation.compare("animate") == 0) {
+        diffuse_animate(c, c_tmp, aux, num_steps);
+        exit(0);
+    }  else if (implementation.compare("cuda") == 0) {
         double *arr = (double *) malloc((N + 2) * (N + 2) * sizeof(double));
         vector_to_arr(c, arr, N + 2);
         time_elapsed = diffuse_cuda(arr, aux, N + 2, num_steps);
@@ -194,6 +226,6 @@ int main(int argc, char *argv[]) {
     }
     printf("Elapsed time: %luns\n", time_elapsed.count());
     if (output == 1) {
-        save_results(c, implementation);
+        save_results(c, implementation, "");
     }
 }
