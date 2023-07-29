@@ -77,7 +77,7 @@ $$
 where $c_{i,j}$ is the heat concentration at position $i, j$.
 Since we're working with a square grid, $h = \Delta x = \Delta y$.
 While exlicit Euler has the advantage of not needing to solve a system of equations to perform a step forward in time, it can be unstable if the time step is too large.
-The maximum stable step size can be computed using von Neumann analysis the process of which is in [this pdf](static/von-neumann.pdf), and the result of which is the following:
+The maximum stable step size can be computed using von Neumann analysis the process of which is in [this pdf](https://joshuaoreilly.com/static/diffusion-von-neumann.pdf), and the result of which is the following:
 
 $$
 \Delta t \leq \frac{h^2}{4D}
