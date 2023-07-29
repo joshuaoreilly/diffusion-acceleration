@@ -1,4 +1,9 @@
-file="results.txt"
+if [ $# -eq 0 ] ; then
+	file="results.txt"
+else
+	file=$1
+fi
+
 echo "Implementation, N (M = N + 2), Time (ns), IO Time (ns) if applicable" > $file
 
 # Too slow to bother doing them all
