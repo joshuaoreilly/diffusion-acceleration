@@ -49,7 +49,7 @@ def plot_speedup(df : pd.DataFrame):
 
     # Smaller arrays only for the slow implementations
     df2 = df2.loc[(df2['N (M = N + 2)'] <= 256) & (df2['Relative speedup'] <= 1.0)]
-    fig, ax = plt.subplots()
+    _, ax = plt.subplots()
     for implementation in implementations:
         df_imp = df2.loc[df2['Implementation'] == implementation]
         ax.plot(df_imp['N (M = N + 2)'],
