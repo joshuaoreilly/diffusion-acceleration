@@ -4,16 +4,16 @@ echo "Implementation, N (M = N + 2), Time (ns), IO Time (ns) if applicable" > $f
 # Too slow to bother doing them all
 for implementation in naive numpy scipy; do
 	for N in 16 32 64 128 256; do
-		output=$(python diffusion.py -D 0.1 -L 2.0 -N $N -T 0.5 --output --implementation $implementation)
+		output=$(python diffusion.py -D 0.1 -L 2.0 -N $N -T 0.5 --implementation $implementation)
 		time=$(echo "$output" | grep -oE '[0-9]+')
 		echo "python_$implementation, $N, $time" >> $file
 		echo "python_$implementation, $N, $time ns"
 	done
 done
 
-for implementation in cupy torch; do
-	for N in 16 32 64 128 256 512 1024; do #, 64, 128, 256, 512
-		output=$(python diffusion.py -D 0.1 -L 2.0 -N $N -T 0.5 --output --implementation $implementation)
+for implementation in naive numpy scipy cupy torch; do
+	for N in 16 32 64 128 256 512 1024; do
+		output=$(python diffusion.py -D 0.1 -L 2.0 -N $N -T 0.5 --implementation $implementation)
 		time=$(echo "$output" | grep -oE '[0-9]+')
 		echo "python_$implementation, $N, $time" >> $file
 		echo "python_$implementation, $N, $time ns"
@@ -22,7 +22,7 @@ done
 
 for implementation in naive openmp cuda; do
 	for N in 16 32 64 128 256 512 1024; do
-		output=$(./diffusion 0.1 2.0 $N 0.5 1 $implementation)
+		output=$(./diffusion 0.1 2.0 $N 0.5 0 $implementation)
 		if [[ "$implementation" == "cuda" ]]; then
 			times=($(echo "$output" | grep -oE '[0-9]+'))
 			time=${times[1]}
