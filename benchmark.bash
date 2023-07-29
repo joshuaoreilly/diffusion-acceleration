@@ -11,7 +11,7 @@ for implementation in naive numpy scipy; do
 	done
 done
 
-for implementation in naive numpy scipy cupy torch; do
+for implementation in cupy torch; do
 	for N in 16 32 64 128 256 512 1024; do
 		output=$(python diffusion.py -D 0.1 -L 2.0 -N $N -T 0.5 --implementation $implementation)
 		time=$(echo "$output" | grep -oE '[0-9]+')
