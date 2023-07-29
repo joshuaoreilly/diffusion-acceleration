@@ -1,8 +1,11 @@
 import argparse
 from pathlib import Path
+import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+
+matplotlib.rcParams.update({'font.size': 16})
 
 
 def plot_overall(df : pd.DataFrame):
