@@ -1,6 +1,7 @@
 # Accelerating a Diffusion Simulation
 
-Experiments in accelerating a simple 2D heat diffusion simulation
+Experiments in accelerating a simple 2D heat diffusion simulation.
+For implementation details and results, visit [here](https://joshuaoreilly.com/Projects/diffusion-acceleration.html).
 
 ## Requirements
 
