@@ -111,14 +111,12 @@ Incrementally slower than our parallelized C++ version for a array width of 200,
 ## To Do
 
 - Clean up formatting of graphs
-- Plot IO time vs compute time for CUDA
 - Compare different choices of thread counts with OpenMP
 - Compare different choices of thread and block count with CUDA
-- CUDA version with dynamic shared memory -> 'stride' within a contiguous chunk of the array, separate x and y derivatives
+- CUDA version with dynamic shared memory -> 'stride' within a contiguous chunk of the array, separate x and y derivatives, maybe even create transposed copy for y derivate
 - omp simd to vectorize C++ implementation
 - Manually vectorize C++ implementation (but don't multithread)
 - Manually thread and vectorize C++ implementation
 - Look into pinning threads on certain CPUs?
 - Parallelize Python code
-- Add memcpy from host to device to time, explain why it's also probably not as relevant in this case, since we could have performed the allocation of c on the GPU direclty if I wasn't running everything/allocating from my C++ file
 - Run as float instead of double maybe add the image from here? It's techincally for a different GPU, but illustrates quite well the availability of registers for different floating point number sizes (https://developer.nvidia.com/blog/nvidia-ampere-architecture-in-depth/)
