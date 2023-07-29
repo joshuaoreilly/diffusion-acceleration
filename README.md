@@ -25,10 +25,10 @@ Something recent-ish, at least?
 To run a single Python implementation:
 
 ```
-python diffusion.py -D 0.1 -L 2.0 -N $N -T 0.5 --implementation $implementation --output
+python diffusion.py -D 0.1 -L 2.0 -N 200 -T 0.5 --implementation torch --output
 ```
 
-where `D` is the diffusion coefficient, `L` is the width of the system we're working on, `$N` is the width of the array (calculations scale to the power of four with width), `T` is the simulation time in seconds, `$implementation` is either `naive`, `numpy`, `scipy`, `cupy`, or `torch`, and `--output` can be selected if you'd like the final array to be output to a text file for visualization with `visualize.py` or compared to the output of another for accuracy with `validate.py`.
+where `D` is the diffusion coefficient, `L` is the width of the system we're working on, `N` is the width of the array (calculations scale to the power of four with width), `T` is the simulation time in seconds, `implementation` is either `naive`, `numpy`, `scipy`, `cupy`, or `torch`, and `--output` can be selected if you'd like the final array to be output to a text file for visualization with `visualize.py` or compared to the output of another for accuracy with `validate.py`.
 
 ### C++/CUDA
 
@@ -42,7 +42,7 @@ make
 To run a single C++/CUDA implementation:
 
 ```
-./diffusion 0.1 2.0 $N 0.5 0 $implementation
+./diffusion 0.1 2.0 N 0.5 0 implementation
 ```
 
 where the arguments are in order: `D`, `L`, `N`, `T`, `output` (0 or 1), and `implementation`, which can be one of `naive`, `openmp`, or `cuda`.
