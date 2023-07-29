@@ -2,10 +2,11 @@ import argparse
 from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 
 
 def plot_overall(df : pd.DataFrame):
-    fig, ax = plt.subplots()
+    _, ax = plt.subplots()
     implementations = df['Implementation'].unique()
     for implementation in implementations:
         df_imp = df.loc[df['Implementation'] == implementation]
@@ -23,16 +24,17 @@ def plot_overall(df : pd.DataFrame):
 
 
 def plot_speedup(df : pd.DataFrame):
-    fig, ax = plt.subplots()
-    implementations = df['Implementation'].unique()
-    df_cpp_naive = df.loc[df['Implementation'] == 'cpp_naive']
+    df2 = df.copy()
+    _, ax = plt.subplots()
+    implementations = df2['Implementation'].unique()
+    df_cpp_naive = df2.loc[df2['Implementation'] == 'cpp_naive']
     for _, row in df_cpp_naive.iterrows():
         N = row['N (M = N + 2)']
         time = row['Time (ns)']
-        df.loc[df['N (M = N + 2)'] == N, 'Time (ns)'] = time / df.loc[df['N (M = N + 2)'] == N, 'Time (ns)']
-    df.rename(columns={'Time (ns)' : 'Relative speedup'}, inplace=True)
+        df2.loc[df2['N (M = N + 2)'] == N, 'Time (ns)'] = time / df2.loc[df2['N (M = N + 2)'] == N, 'Time (ns)']
+    df2 = df2.rename(columns={'Time (ns)' : 'Relative speedup'})
     for implementation in implementations:
-        df_imp = df.loc[df['Implementation'] == implementation]
+        df_imp = df2.loc[df['Implementation'] == implementation]
         ax.plot(df_imp['N (M = N + 2)'],
                 df_imp['Relative speedup'],
                 label=implementation)
@@ -46,10 +48,10 @@ def plot_speedup(df : pd.DataFrame):
     plt.show()
 
     # Smaller arrays only for the slow implementations
-    df = df.loc[(df['N (M = N + 2)'] <= 256) & (df['Relative speedup'] <= 1.0)]
+    df2 = df2.loc[(df2['N (M = N + 2)'] <= 256) & (df2['Relative speedup'] <= 1.0)]
     fig, ax = plt.subplots()
     for implementation in implementations:
-        df_imp = df.loc[df['Implementation'] == implementation]
+        df_imp = df2.loc[df2['Implementation'] == implementation]
         ax.plot(df_imp['N (M = N + 2)'],
                 df_imp['Relative speedup'],
                 label=implementation)
@@ -63,6 +65,28 @@ def plot_speedup(df : pd.DataFrame):
     ax.grid(True)
     plt.show()
 
+
+def plot_cuda_IO(df : pd.DataFrame):
+    _, ax = plt.subplots()
+    df_cuda = df.loc[df['Implementation'] == 'cuda']
+    rows = df_cuda.shape[0]
+    bottom = np.zeros(rows)
+    ax.bar(df_cuda['N (M = N + 2)'].astype(str),
+           df_cuda['Time (ns)'].apply(lambda x: x/1000000000),
+           label='Compute Time',
+           bottom=bottom)
+    bottom += df_cuda['Time (ns)'].apply(lambda x: x/1000000000)
+    ax.bar(df_cuda['N (M = N + 2)'].astype(str),
+           df_cuda['IO Time (ns) if applicable'].apply(lambda x: x/1000000000),
+           label='IO Time',
+           bottom=bottom)
+    ax.set_yscale('log')
+    ax.set_title('Compute time and IO Time of CUDA implementation')
+    ax.set_ylabel('Time (s)')
+    ax.legend()
+    plt.show()
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--file', type=Path, required=False, default='results.txt')
@@ -73,3 +97,4 @@ if __name__ == '__main__':
     df = pd.read_csv(filepath, skipinitialspace=True)
     plot_overall(df)
     plot_speedup(df)
+    plot_cuda_IO(df)
