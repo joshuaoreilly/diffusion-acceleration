@@ -82,6 +82,7 @@ def plot_cuda_IO(df : pd.DataFrame):
            bottom=bottom)
     ax.set_yscale('log')
     ax.set_title('Compute time and IO Time of CUDA implementation')
+    ax.set_xlabel('N')
     ax.set_ylabel('Time (s)')
     ax.legend()
     plt.show()
