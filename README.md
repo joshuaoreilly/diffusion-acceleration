@@ -3,7 +3,7 @@
 Experiments in accelerating a simple 2D heat diffusion simulation.
 For implementation details and results, visit [here](https://joshuaoreilly.com/Projects/diffusion-acceleration.html).
 
-https://joshuaoreilly.com/static/diffusion.mp4
+https://github.com/joshuaoreilly/diffusion-acceleration/assets/26682773/7d9b539d-84e3-4712-ae97-f67418849bab
 
 ## Requirements
 
