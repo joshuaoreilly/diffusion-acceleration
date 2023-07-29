@@ -60,10 +60,8 @@ void arr_to_vector(std::vector<double> &c,
 
 std::chrono::nanoseconds diffuse_openmp(std::vector<double> &c,
                             std::vector<double> &c_tmp,
-                            const double T,
-                            const double dt,
-                            const double aux) {
-    const size_t num_steps = (size_t) ((T / dt) + 1);
+                            const double aux,
+                            const size_t num_steps) {
     // M = N + 2, the length with padding
     const size_t M = (size_t) sqrt(c.size());
     auto time_start = std::chrono::steady_clock::now();
@@ -102,10 +100,8 @@ __inline__ void step_const_c(const std::vector<double> &__restrict c,
 
 std::chrono::nanoseconds diffuse_const_c(std::vector<double> &c,
                             std::vector<double> &c_tmp,
-                            const double T,
-                            const double dt,
-                            const double aux) {
-    const size_t num_steps = (size_t) ((T / dt) + 1);
+                            const double aux,
+                            const size_t num_steps) {
     // M = N + 2, the length with padding
     const size_t M = (size_t) sqrt(c.size());
     auto time_start = std::chrono::high_resolution_clock::now();
@@ -121,10 +117,8 @@ std::chrono::nanoseconds diffuse_const_c(std::vector<double> &c,
 
 std::chrono::nanoseconds diffuse_naive(std::vector<double> &c,
                             std::vector<double> &c_tmp,
-                            const double T,
-                            const double dt,
-                            const double aux) {
-    const size_t num_steps = (size_t) ((T / dt) + 1);
+                            const double aux,
+                            const size_t num_steps) {
     // M = N + 2, the length with padding
     const size_t M = (size_t) sqrt(c.size());
     auto time_start = std::chrono::steady_clock::now();
@@ -177,21 +171,22 @@ int main(int argc, char *argv[]) {
     const double h = L / (N - 1);               // length between grid elements
     const double dt = h * h / (4 * D);          // maximum timestamp for numeric stability
     const double aux = dt * D / (h * h);        // all constant terms in diffusion equation
+    const size_t num_steps = (size_t) ((T / dt) + 1);
 
     std::vector<double> c((N+2) * (N+2), 0.0);
     std::vector<double> c_tmp((N+2) * (N+2), 0.0);
     initialize_concentration(c, L, N, h);
     std::chrono::nanoseconds time_elapsed;
     if (implementation.compare("naive") == 0) {
-        time_elapsed = diffuse_naive(c, c_tmp, T, dt, aux);
+        time_elapsed = diffuse_naive(c, c_tmp, aux, num_steps);
     } else if (implementation.compare("const") == 0) {
-        time_elapsed = diffuse_const_c(c, c_tmp, T, dt, aux);
+        time_elapsed = diffuse_const_c(c, c_tmp, aux, num_steps);
     } else if (implementation.compare("openmp") == 0) {
-        time_elapsed = diffuse_openmp(c, c_tmp, T, dt, aux);
+        time_elapsed = diffuse_openmp(c, c_tmp, aux, num_steps);
     } else if (implementation.compare("cuda") == 0) {
         double *arr = (double *) malloc((N + 2) * (N + 2) * sizeof(double));
         vector_to_arr(c, arr, N + 2);
-        time_elapsed = diffuse_cuda(arr, T, dt, aux, N + 2);
+        time_elapsed = diffuse_cuda(arr, aux, N + 2, num_steps);
         arr_to_vector(c, arr, N + 2);
     }  else {
         std::cout << "Implementation " << implementation << " not found\n";

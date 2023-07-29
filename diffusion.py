@@ -28,9 +28,8 @@ def save_results(c, implementation):
 
 def diffuse_torch(c : List[List[float]],
                  c_tmp : List[List[float]],
-                 T : float,
-                 dt : float,
-                 aux : float):
+                 aux : float,
+                 num_steps : int):
      width = len(c)
      gpu = torch.device('cuda')
      c = torch.tensor(c, dtype=torch.float64, device=gpu)
@@ -46,7 +45,6 @@ def diffuse_torch(c : List[List[float]],
      assert c.is_cuda
      assert c_tmp.is_cuda
      assert kernel.is_cuda
-     num_steps = int(T / dt) + 1
      time_start = perf_counter_ns()
      for _ in range(num_steps):
           c_tmp = c + torch.nn.functional.pad(
@@ -63,15 +61,13 @@ def diffuse_torch(c : List[List[float]],
 
 def diffuse_cupy(c : List[List[float]],
                  c_tmp : List[List[float]],
-                 T : float,
-                 dt : float,
-                 aux : float):
+                 aux : float,
+                 num_steps : int):
      c = cp.array(c)
      c_tmp = cp.array(c_tmp)
      kernel = aux * cp.array([[0, 1, 0],
                               [1, -4, 1],
                               [0, 1, 0]])
-     num_steps = int(T / dt) + 1
      time_start = perf_counter_ns()
      for _ in range(num_steps):
           c_tmp = c + cp.pad(
@@ -86,15 +82,13 @@ def diffuse_cupy(c : List[List[float]],
 
 def diffuse_scipy(c : List[List[float]],
                   c_tmp : List[List[float]],
-                  T : float,
-                  dt : float,
-                  aux : float):
+                  aux : float,
+                  num_steps : int):
      c = np.array(c)
      c_tmp = np.array(c_tmp)
      kernel = aux * np.array([[0, 1, 0],
                               [1, -4, 1],
                               [0, 1, 0]])
-     num_steps = int(T / dt) + 1
      time_start = perf_counter_ns()
      for _ in range(num_steps):
           c_tmp = c + np.pad(
@@ -109,12 +103,10 @@ def diffuse_scipy(c : List[List[float]],
 
 def diffuse_numpy(c : List[List[float]],
                   c_tmp : List[List[float]],
-                  T : float,
-                  dt : float,
-                  aux : float):
+                  aux : float,
+                  num_steps : int):
      c = np.array(c)
      c_tmp = np.array(c_tmp)
-     num_steps = int(T / dt) + 1
      time_start = perf_counter_ns()
      for _ in range(num_steps):
           for i in range(1, len(c) - 1):
@@ -130,10 +122,8 @@ def diffuse_numpy(c : List[List[float]],
 
 def diffuse_naive(c : List[List[float]],
                   c_tmp : List[List[float]],
-                  T : float,
-                  dt : float,
-                  aux : float):
-     num_steps = int(T / dt) + 1
+                  aux : float,
+                  num_steps : int):
      time_start = perf_counter_ns()
      for _ in range(num_steps):
           for i in range(1, len(c) - 1):
@@ -190,17 +180,18 @@ if __name__ == '__main__':
      implementation = args.implementation
      output = args.output
      h, dt, aux = get_constants(D, L, N)
+     num_steps = int(T / dt) + 1
      c, c_tmp = initialize_concentration(L, N, h)
      if implementation == 'naive':
-          c, time_ns = diffuse_naive(c, c_tmp, T, dt, aux)
+          c, time_ns = diffuse_naive(c, c_tmp, aux, num_steps)
      elif implementation == 'numpy':
-          c, time_ns = diffuse_numpy(c, c_tmp, T, dt, aux)
+          c, time_ns = diffuse_numpy(c, c_tmp, aux, num_steps)
      elif implementation == 'scipy':
-          c, time_ns = diffuse_scipy(c, c_tmp, T, dt, aux)
+          c, time_ns = diffuse_scipy(c, c_tmp, aux, num_steps)
      elif implementation == 'cupy':
-          c, time_ns = diffuse_cupy(c, c_tmp, T, dt, aux)
+          c, time_ns = diffuse_cupy(c, c_tmp, aux, num_steps)
      elif implementation == 'torch':
-          c, time_ns = diffuse_torch(c, c_tmp, T, dt, aux)
+          c, time_ns = diffuse_torch(c, c_tmp, aux, num_steps)
      else:
           raise ValueError(f'Implementation {implementation} does\'t exist')
      if output:

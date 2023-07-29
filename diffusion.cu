@@ -37,10 +37,9 @@ void step_kernel(double *c, double *c_tmp, const double aux, const size_t M) {
 
 
 std::chrono::nanoseconds diffuse_cuda(double *c_h,
-                                    const double T,
-                                    const double dt,
                                     const double aux,
-                                    const size_t M) {
+                                    const size_t M,
+                                    const size_t num_steps) {
     int deviceId;
     cudaDeviceProp props;
     cudaGetDevice(&deviceId);
@@ -64,7 +63,6 @@ std::chrono::nanoseconds diffuse_cuda(double *c_h,
     int threadsPerBlock = 32;
     int numberOfBlocks = 32 * multiProcessorCount;
 
-    const size_t num_steps = (size_t) ((T / dt) + 1);
     auto time_start = std::chrono::steady_clock::now();
     for (size_t step = 0; step < num_steps; ++step) {
         step_kernel<<<numberOfBlocks, threadsPerBlock>>>(c, c_tmp, aux, M);
