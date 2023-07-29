@@ -3,6 +3,8 @@
 Experiments in accelerating a simple 2D heat diffusion simulation.
 For implementation details and results, visit [here](https://joshuaoreilly.com/Projects/diffusion-acceleration.html).
 
+https://joshuaoreilly.com/static/diffusion.mp4
+
 ## Requirements
 
 - g++ or another compiler that supports OpenMP
