@@ -89,7 +89,7 @@ where $\frac{D \Delta t}{h^2}$ is the `aux` term which shows up in the code.
 One of my roommates pointed out that this equation is effectively convoluting the 2D array by a $3 \times 3$ kernel, namely:
 
 $$
-c^{n+1} = c^{n} * \left( \frac{D \Delta t}{h^2}
+c^{n+1} = c^{n} + c^{n} * \left( \frac{D \Delta t}{h^2}
     \begin{bmatrix}
     0 & 1 & 0\\
     1 & -4 & 1 \\
@@ -98,7 +98,7 @@ c^{n+1} = c^{n} * \left( \frac{D \Delta t}{h^2}
     \right)
 $$
 
-where $c^{n}$ is the entire 2D array at time $n$.
+where $*$ is the convolution operation and $c^{n}$ is the entire 2D array at time $n$.
 
 While exlicit Euler has the advantage of not needing to solve a system of equations to perform a step forward in time, it can be unstable if the time step is too large.
 The maximum stable step size can be computed using von Neumann analysis the process of which is in [this pdf](https://joshuaoreilly.com/static/diffusion-von-neumann.pdf), and the result of which is the following:
