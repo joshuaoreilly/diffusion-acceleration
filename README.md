@@ -85,7 +85,9 @@ $$
 \Delta t \leq \frac{h^2}{4D}
 $$
 
-If we fix $D$, then as the array width $x = y = h$ doubles, the maximum timestep shrinks by a factor of 4. 
+If we fix $D$, then as the array width $x = y = h$ doubles, the maximum timestep shrinks by a factor of 4.
+
+Finally, I've set the boundary condition of $c_{i,0} = c_{0,j} = 0$: the borders are always equal to zero, meaning heat is slowly being leeched from the system.
 
 ## Implementations and Results
 
