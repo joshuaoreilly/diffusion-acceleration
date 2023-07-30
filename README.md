@@ -76,8 +76,16 @@ $$
 \frac{c_{i,j}^{n+1} - c_{i,j}^{n}}{\Delta t} = D \left[ \frac{c_{i-1,j}^n - 2c_{i,j}^n + c_{i+1,j}^n}{\Delta x^2} + \frac{ c_{i,j-1}^n - 2c_{i,j}^n + c_{i,j+1}^n}{\Delta y^2} \right]
 $$
 
-where $c_{i,j}$ is the heat concentration at position $i, j$.
+where $c_{i,j}^n$ is the heat concentration at position $i, j$ at time n.
 Since we're working with a square grid, $h = \Delta x = \Delta y$.
+Isolating the new concentration $c_{i,j}^{n+1}$:
+
+$$
+c_{i,j}^{n+1} = c_{i,j}^{n} +  \frac{D \Delta t}{h^2}  \left[ c_{i-1,j}^n + c_{i+1,j}^n + c_{i,j-1}^n + c_{i,j+1}^n - 4c_{i,j}^n \right]
+$$
+
+where $\frac{D \Delta t}{h^2}$ is the `aux` term which shows up in the code.
+
 While exlicit Euler has the advantage of not needing to solve a system of equations to perform a step forward in time, it can be unstable if the time step is too large.
 The maximum stable step size can be computed using von Neumann analysis the process of which is in [this pdf](https://joshuaoreilly.com/static/diffusion-von-neumann.pdf), and the result of which is the following:
 
