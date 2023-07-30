@@ -89,7 +89,7 @@ where $\frac{D \Delta t}{h^2}$ is the `aux` term which shows up in the code.
 One of my roommates pointed out that this equation is effectively convoluting the 2D array by a $3 \times 3$ kernel, namely:
 
 $$
-c^{n+1} = c^{n} * \left(
+c^{n+1} = c^{n} * \left( \frac{D \Delta t}{h^2}
     \begin{bmatrix}
     0 & 1 & 0\\
     1 & -4 & 1 \\
