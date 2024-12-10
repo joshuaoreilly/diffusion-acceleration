@@ -5,7 +5,12 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-matplotlib.rcParams.update({'font.size': 16})
+matplotlib.rcParams.update({'font.size': 16,
+                           'axes.labelsize': 'x-large',
+                           'axes.titlesize':'x-large',
+                           'xtick.labelsize':'x-large',
+                           'ytick.labelsize':'x-large',
+                           'legend.fontsize':'x-large'})
 
 
 def plot_overall(df : pd.DataFrame):

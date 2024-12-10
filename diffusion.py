@@ -7,6 +7,7 @@ import scipy as sp
 import cupyx.scipy.signal as sgx
 import cupy as cp
 import torch
+import cv2
 
 
 """
@@ -20,7 +21,7 @@ def save_results(c, implementation):
           with open(Path('python_' + implementation + '.txt'), 'w') as file:
                for row in c:
                     file.writelines(','.join([str(i) for i in row]) + '\n')
-     elif implementation in {'numpy', 'scipy', 'cupy', 'torch'}:
+     elif implementation in {'numpy', 'scipy', 'opencv', 'cupy', 'torch'}:
           np.savetxt('python_' + implementation + '.txt', c, fmt='%f', delimiter=',')
      else:
           raise ValueError(f'Implementation {implementation} does\'t exist')
@@ -77,6 +78,24 @@ def diffuse_cupy(c : List[List[float]],
                )
           c, c_tmp = c_tmp, c
      time_stop = perf_counter_ns()
+     return c, time_stop - time_start
+
+
+def diffuse_opencv(c : List[List[float]],
+                   c_tmp : List[List[float]],
+                   aux : float,
+                   num_steps : int):
+     c = np.array(c)
+     c_tmp = np.array(c_tmp)
+     kernel = aux * np.array([[0, 1, 0],
+                              [1, -3, 1],
+                              [0, 1, 0]])
+     time_start = perf_counter_ns()
+     for _ in range(num_steps):
+          c_tmp = cv2.filter2D(src=c, kernel=kernel, borderType=cv2.BORDER_CONSTANT, value=0)
+          c, c_tmp = c_tmp, c
+     time_stop = perf_counter_ns()
+     c = np.pad(c, 1,'constant')
      return c, time_stop - time_start
 
 
@@ -188,6 +207,8 @@ if __name__ == '__main__':
           c, time_ns = diffuse_numpy(c, c_tmp, aux, num_steps)
      elif implementation == 'scipy':
           c, time_ns = diffuse_scipy(c, c_tmp, aux, num_steps)
+     elif implementation == 'opencv':
+          c, time_ns = diffuse_torch(c, c_tmp, aux, num_steps)
      elif implementation == 'cupy':
           c, time_ns = diffuse_cupy(c, c_tmp, aux, num_steps)
      elif implementation == 'torch':

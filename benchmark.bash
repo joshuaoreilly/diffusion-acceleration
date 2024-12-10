@@ -7,7 +7,7 @@ fi
 echo "Implementation, N (M = N + 2), Time (ns), IO Time (ns) if applicable" > $file
 
 # Too slow to bother doing them all
-for implementation in naive numpy scipy; do
+for implementation in naive numpy scipy opencv; do
 	for N in 16 32 64 128 256; do
 		output=$(python diffusion.py -D 0.1 -L 2.0 -N $N -T 0.5 --implementation $implementation)
 		time=$(echo "$output" | grep -oE '[0-9]+')
